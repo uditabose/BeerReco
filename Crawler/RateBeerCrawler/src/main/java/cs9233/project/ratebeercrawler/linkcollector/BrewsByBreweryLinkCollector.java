@@ -1,6 +1,6 @@
 
 
-package cs9233.project.ratebeercrawler;
+package cs9233.project.ratebeercrawler.linkcollector;
 
 import java.io.IOException;
 import java.util.HashMap;

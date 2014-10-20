@@ -1,7 +1,8 @@
 
 
-package cs9233.project.ratebeercrawler;
+package cs9233.project.ratebeercrawler.linkcollector;
 
+import cs9233.project.ratebeercrawler.Constants;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
