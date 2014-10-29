@@ -3,6 +3,7 @@ package cs9233.project.ratebeercrawler.review;
 import com.google.gson.Gson;
 import com.google.gson.internal.Streams;
 import static cs9233.project.ratebeercrawler.Constants.DIRNFILE.*;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
@@ -18,7 +19,7 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 /**
- *
+ * TODO : Need to add done till stamp
  * @author Udita
  */
 public class BeerReviewCollector {
@@ -32,16 +33,14 @@ public class BeerReviewCollector {
         Map<String, String> brews = null;
         for (File beerDataFile : beerDataFiles) {
             brews = getFromJson(beerDataFile);
-            //System.out.println(brews);
             System.out.println("----------------------------------------------");
             if (brews != null) {
                 for (Map.Entry<String, String> brewEntry : brews.entrySet()) {
                     parse(brewEntry.getKey(), brewEntry.getValue());
+                    writeMetadata(beerDataFile.getName(), brewEntry.getKey());
                 }
             }
-            //break;
         }
-
     }
 
     private Map<String, String> getFromJson(File beerDataFile) {
@@ -51,12 +50,12 @@ public class BeerReviewCollector {
             fileReader = new FileReader(beerDataFile);
             brews = gson.fromJson(fileReader, Map.class);
         } catch (FileNotFoundException ex) {
-            Logger.getLogger(BeerReviewCollector.class.getName()).log(Level.SEVERE, null, ex);
+            System.err.println("File not found - " + beerDataFile);
         } finally {
             try {
                 fileReader.close();
             } catch (IOException ex) {
-                Logger.getLogger(BeerReviewCollector.class.getName()).log(Level.SEVERE, null, ex);
+                // do nothing
             }
         }
 
@@ -74,7 +73,6 @@ public class BeerReviewCollector {
                 Element smallElem = smallElements.get(0);
                 Elements rateElems = smallElem.children();
 
-                //System.out.println("rateElems -- > " + rateElems);
                 beerReview = (rateElems.isEmpty()) ? null : new BeerReview();
 
                 if (beerReview != null) {
@@ -127,14 +125,10 @@ public class BeerReviewCollector {
                                 beerReviewer.setUserName(allText.split("\\(")[0]);
                             }
                         } catch (Exception e) {
-                        }
-
-                        
+                            // skip the data
+                        }  
                     }
                 }
-
-                
-                //System.out.println(beerReview);
             }
             dump(brewName, beerReview);
             System.out.println("***********************************************");
@@ -149,14 +143,42 @@ public class BeerReviewCollector {
             fileWriter = new FileWriter(REVIEW_FILE + URLEncoder.encode(brewName, "UTF-8"));
             gson.toJson(beerReview, Streams.writerForAppendable(fileWriter));
         } catch (FileNotFoundException ex) {
-            Logger.getLogger(BeerReviewCollector.class.getName()).log(Level.SEVERE, null, ex);
+            System.err.println("File not found - " + brewName);
         } catch (IOException ex) {
-            Logger.getLogger(BeerReviewCollector.class.getName()).log(Level.SEVERE, null, ex);
+            System.err.println("File could not be written - " + brewName);
         } finally {
             try {
                 fileWriter.close();
             } catch (IOException ex) {
-                //Logger.getLogger(BeerReviewCollector.class.getName()).log(Level.SEVERE, null, ex);
+                // do nothing
+            }
+        }
+    }
+
+    private void writeMetadata(String beerDataFile, String beerName) {
+        BufferedWriter bw = null;
+        try {
+            StringBuilder metadataString = new StringBuilder();
+            metadataString.append("lastDataFile")
+                    .append("=")
+                    .append(beerDataFile)
+                    .append("\n")
+                    .append("beerName")
+                    .append("=")
+                    .append(beerName);
+            
+            bw = new BufferedWriter(new FileWriter(METADATA_FILE));
+            bw.write(metadataString.toString());
+            
+        } catch (Exception ex) {
+            // do nothing
+        } finally {
+            if (bw != null) {
+                try {
+                    bw.close();
+                } catch (IOException ex) {
+                    // do nothing
+                }
             }
         }
     }
