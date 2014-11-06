@@ -23,6 +23,12 @@ public class BeerListBrowser {
     static HashSet<String> brewrySet = new HashSet<String>();
 
     public static void main(String[] args) throws Exception {
+        //BeerListBrowser.runCrawlerPhase1();
+        BeerReviewBrowser.runCrawlerPhase2();
+    }
+
+
+    public static void runCrawlerPhase1() throws IOException {
         beerListDriver.get(home);
         beerLinks = new BufferedWriter(new FileWriter("beerlinks.txt"));
         brewryLinks = new BufferedWriter(new FileWriter("brewrylinks.txt"));
