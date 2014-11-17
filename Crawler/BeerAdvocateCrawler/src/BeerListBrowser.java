@@ -16,12 +16,21 @@ public class BeerListBrowser {
 
     static String home = "http://www.beeradvocate.com/beer/reviews/?view=all&order=nameA&start=0";
     static WebDriver beerListDriver = new FirefoxDriver();
-//    static WebDriver beerReviewDriver = new FirefoxDriver();
     static BufferedWriter beerLinks;
     static BufferedWriter brewryLinks;
     static HashSet<String> beerSet = new HashSet<String>();
     static HashSet<String> brewrySet = new HashSet<String>();
 
+    /**
+     * Crawler runs in two phases
+     * phase 1 - collect links of all the beers
+     * phase 2 - visit each link and start browsing them one by one collecting reviews
+     *
+     * phase 1 code is present in the BeerListBrowser class
+     * phase 2 code is present in the BeerReviewBrowser class
+     * @param args
+     * @throws Exception
+     */
     public static void main(String[] args) throws Exception {
         //BeerListBrowser.runCrawlerPhase1();
         BeerReviewBrowser.runCrawlerPhase2();

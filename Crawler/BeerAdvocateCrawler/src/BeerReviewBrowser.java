@@ -4,54 +4,261 @@ import org.openqa.selenium.WebElement;
 import org.openqa.selenium.firefox.FirefoxDriver;
 
 import java.io.*;
+import java.util.HashMap;
 import java.util.List;
+import org.openqa.selenium.NoSuchElementException;
 
 /**
  * Created by maverick on 11/5/14.
  */
 public class BeerReviewBrowser {
 
+    // files used to preserve state
+    static String brewryHashMapFile = "brewryHashMapFile.ser";
+    static String beerHashMapFile = "beerHashMapFile.ser";
+    static String metadataFile = "metadata.txt";
+    // input file
+    static String inputUrlFile = "./run2/beerlinks.txt";
+    // file used to  keep temp reviews for a beer
+    static String tempReviewFileName = "temp.txt";
+    // file used to keep the final data
+    static String reviewData = "Badata.txt";
+    // files used to keep the map data after the crawler has finished
+    static String beerIdtoNameMap = "beerIdToName";
+    static String brewryIdToNameMap = "brewryIdToName";
+
+    // driver to browse through beer reviews
     static WebDriver beerReviewDriver = new FirefoxDriver();
 
+    static String lastUrl = "";
+
+    static BufferedWriter dataFile;
+    static BufferedReader urlFileReader;
     public static void runCrawlerPhase2() throws IOException {
         readBeerListFile();
     }
+    static HashMap<String, String> brewryIdMap = new HashMap<String, String>();
+    static HashMap<String, String> beerIdMap = new HashMap<String, String>();
+    static int beerid = 0;
+    static int brewryId = 0;
+    static int urlsProcessed = 0;
 
-    private static void readBeerListFile() throws IOException {
-        BufferedReader br = null;
+    private static void readBeerListFile() {
+        try{
+            initializeAndLoadState();
+
+            String url = urlFileReader.readLine();
+            urlsProcessed++;
+            while( url != null) {
+                url = url.substring(0,url.indexOf("?"));
+                processBeer(url);
+                mergeReviewsToDataFile();
+                preserveState();
+                url = urlFileReader.readLine();
+                urlsProcessed++;
+            }
+            dataFile.close();
+            idMapOutput();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+
+    }
+
+    private static void idMapOutput() throws IOException {
+        BufferedWriter beerWriter = new BufferedWriter(new FileWriter(beerIdtoNameMap));
+        BufferedWriter brewryWriter = new BufferedWriter(new FileWriter(brewryIdToNameMap));
+        for(String key : beerIdMap.keySet()) {
+            beerWriter.append(String.format("%1$s,%2$s\n", key, beerIdMap.get(key)));
+        }
+        for(String key: brewryIdMap.keySet()) {
+            brewryWriter.append(String.format("%1$s,%2$s\n", key, brewryIdMap.get(key)));
+        }
+        beerWriter.close();
+        brewryWriter.close();
+    }
+
+    private static void mergeReviewsToDataFile() throws IOException{
+        BufferedReader br = new BufferedReader(new FileReader(tempReviewFileName));
+        String line = br.readLine();
+        while(line != null) {
+            dataFile.append(line+"\n");
+            line = br.readLine();
+        }
+        br.close();
+        dataFile.flush();
+    }
+
+    private static void processBeer(String url) throws IOException {
+        File beerReviews = new File(tempReviewFileName);
+
+        if (beerReviews.exists()) {
+            beerReviews.delete();
+            beerReviews.createNewFile();
+        }
+        BufferedWriter bw = new BufferedWriter(new FileWriter(beerReviews));
+
+        beerReviewDriver.get(url);
+        String beerName, brewryName;
+
+        WebElement next;
+        WebElement temp = null;
+        temp = beerReviewDriver.findElement(By.cssSelector(".titleBar"));
+        beerName = temp.getText();
+        brewryName = beerName.substring(beerName.indexOf("-")+1, beerName.length());
+        beerName = beerName.substring(beerName.indexOf("-"));
+        String id , brewryid;
+        if(brewryIdMap.containsKey(brewryName))
+            brewryid = brewryIdMap.get(brewryName);
+        else {
+            brewryid = "ba"+ new Integer(brewryId++).toString();
+            brewryIdMap.put(brewryName, brewryid);
+        }
+        if(beerIdMap.containsKey(beerName)) {
+            id = beerIdMap.get(beerName);
+        }
+        else {
+            id = "ba"+ new Integer(beerid++).toString();
+            beerIdMap.put(beerName, id);
+        }
+
+        do {
+            next = findNextPageLink();
+            List<WebElement> reviews = null;
+            reviews = beerReviewDriver.findElements(By.id("rating_fullview_container"));
+            String bascore, rating, review, username, look = "", smell = "", taste = "", feel = "", overall = "";
+            for(WebElement element : reviews) {
+                review = element.getText();
+                String [] parts = review.split("\n");
+                bascore = parts[0];
+                rating = parts[1];
+                username = parts[parts.length-1];
+                username = username.substring(0,username.indexOf(','));
+                review = "";
+                for(int i = 2; i < parts.length-1; i++) {
+                    if(parts[i].length() > 1)
+                        review += parts[i];
+                }
+                String[] ratingComponents = rating.split("|");
+                for(String ratingComponent : ratingComponents) {
+                    if (ratingComponent.contains("look"))
+                        look = ratingComponent.substring(ratingComponent.indexOf(":")+1);
+                    else if (ratingComponent.contains("smell"))
+                        smell = ratingComponent.substring(ratingComponent.indexOf(":")+1);
+                    else if (ratingComponent.contains("taste"))
+                        taste = ratingComponent.substring(ratingComponent.indexOf(":")+1);
+                    else if (ratingComponent.contains("feel"))
+                        feel = ratingComponent.substring(ratingComponent.indexOf(":")+1);
+                    else if (ratingComponent.contains("overall"))
+                        overall = ratingComponent.substring(ratingComponent.indexOf(":")+1);
+                }
+                bw.append(String.format("%9$s,%10$s,%1$s,%2$s,%3$s,%4$s,%5$s,%6$s,%7$s,%8$s\n",bascore, look, smell, taste, feel, overall, username, review, id, brewryid));
+            }
+            if(next != null)
+                next.click();
+        } while(next != null);
+        bw.close();
+    }
+
+    private static WebElement findNextPageLink() {
+        WebElement elem = null;
         try {
-            br = new BufferedReader(new InputStreamReader(new FileInputStream(new File("./run2/beerlinks.txt"))));
-        } catch (FileNotFoundException e) {
+            elem = beerReviewDriver.findElement(By.cssSelector("#baContent>div:nth-last-child(2)>:nth-last-child(2)"));
+            if(!elem.getTagName().equals("a"))
+                return null;
+        } catch (NoSuchElementException e) {
+            return null;
+        }
+       return elem;
+    }
+
+    private static void preserveState() {
+        try{
+            // save the brewry map
+            File file = new File(brewryHashMapFile);
+            serializeObjectToFile(file, brewryIdMap);
+            file = new File(beerHashMapFile);
+            serializeObjectToFile(file, beerIdMap);
+
+            File file2 = new File(metadataFile);
+            if(file2.exists()) {
+                file2.delete();
+                file2.createNewFile();
+            }
+            FileWriter writer = new FileWriter(file2);
+            writer.append(beerid +"\n");
+            writer.append(brewryId + "\n");
+            writer.append(urlsProcessed+"\n");
+            writer.append(lastUrl+"\n");
+            writer.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    private static void serializeObjectToFile(File file, Object obj) throws IOException {
+        if(file.exists()) {
+            file.delete();
+            file.createNewFile();
+        }
+        ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(file));
+        oos.writeObject(brewryIdMap);
+        oos.close();
+    }
+
+    private static void initializeAndLoadState() {
+        boolean isLoadingAfterACrash = false;
+        // load the brewry map
+        File file = new File(brewryHashMapFile);
+
+        try {
+            urlFileReader = new BufferedReader(new FileReader(new File(inputUrlFile)));
+            dataFile = new BufferedWriter(new FileWriter(reviewData));
+        } catch (IOException e) {
             e.printStackTrace();
             System.exit(1);
         }
-        String line = br.readLine();
-        while( line != null) {
-            line = line.substring(0,line.indexOf("?"));
-            processBeer(line);
-            line = br.readLine();
 
+        try{
+            if(file.exists()) {
+                isLoadingAfterACrash = true;
+                ObjectInputStream ois = new ObjectInputStream(new FileInputStream(file));
+                brewryIdMap = (HashMap<String,String>) ois.readObject();
+                ois.close();
+            }
+            file = new File(beerHashMapFile);
+            if(file.exists()) {
+                isLoadingAfterACrash = true;
+                ObjectInputStream ois = new ObjectInputStream(new FileInputStream(file));
+                beerIdMap = (HashMap<String,String>) ois.readObject();
+                ois.close();
+            }
+
+            if(isLoadingAfterACrash) {
+                File file2 = new File(metadataFile);
+                BufferedReader br = new BufferedReader(new FileReader(file2));
+                beerid = Integer.parseInt(br.readLine());
+                brewryId = Integer.parseInt(br.readLine());
+                urlsProcessed = Integer.parseInt(br.readLine());
+                lastUrl = br.readLine();
+                br.close();
+
+                for(int i = 0; i < urlsProcessed -1; i++) {
+                    urlFileReader.readLine();
+                }
+
+            }
+            else {
+                // write the csv header
+                dataFile.write("score, look, smell ,taste , feel, overall, username, review\n");
+            }
+        } catch (IOException|ClassNotFoundException e) {
+            e.printStackTrace();
+            System.exit(1);
         }
-    }
 
-    private static void processBeer(String url) {
-        beerReviewDriver.get(url);
-        WebElement temp = null;
-        List<WebElement> reviews = beerReviewDriver.findElements(By.id("rating_fullview_container"));
-        for(WebElement element : reviews) {
-            element = element.findElement(By.id("rating_fullview_content_2"));
-            temp = element.findElement(By.className("BAscore_norm"));
-            String bascore = temp.getText();
-            temp = element.findElement(By.className("rAvg_norm"));
-            String norm = temp.getText();
-            List<WebElement> mutedClass = element.findElements(By.className("muted"));
-            temp = mutedClass.get(0);
-            String rating = temp.getText();
-            String review = element.getText();
-            temp = mutedClass.get(1);
-            temp = temp.findElement(By.className("username"));
-            String username = temp.getText();
 
-        }
     }
 }
