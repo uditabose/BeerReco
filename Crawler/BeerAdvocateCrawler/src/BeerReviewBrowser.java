@@ -153,7 +153,7 @@ public class BeerReviewBrowser {
                     else if (ratingComponent.contains("overall"))
                         overall = ratingComponent.substring(ratingComponent.indexOf(":")+1);
                 }
-                bw.append(String.format("%9$s,%10$s,%1$s,%2$s,%3$s,%4$s,%5$s,%6$s,%7$s,%8$s\n",bascore, look, smell, taste, feel, overall, username, review, id, brewryid));
+                bw.append(String.format("%9$s,%10$s,%1$s,%2$s,%3$s,%4$s,%5$s,%6$s,%7$s,%8$s\n",bascore, look, smell, taste, feel, overall,"ba-" +username, review, id, brewryid));
             }
             if(next != null)
                 next.click();
@@ -252,7 +252,7 @@ public class BeerReviewBrowser {
             }
             else {
                 // write the csv header
-                dataFile.write("score, look, smell ,taste , feel, overall, username, review\n");
+                dataFile.write("beerid, brewryid, score, look, smell ,taste , feel, overall, username, review\n");
             }
         } catch (IOException|ClassNotFoundException e) {
             e.printStackTrace();
