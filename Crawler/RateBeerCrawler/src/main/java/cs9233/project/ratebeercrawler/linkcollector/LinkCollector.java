@@ -3,11 +3,8 @@
 package cs9233.project.ratebeercrawler.linkcollector;
 
 import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.google.gson.internal.Streams;
-import com.google.gson.stream.JsonWriter;
 import java.io.FileWriter;
-import java.lang.reflect.Type;
 import java.util.Map;
 
 import static cs9233.project.ratebeercrawler.Constants.DIRNFILE.*;

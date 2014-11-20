@@ -155,19 +155,22 @@ public class BeerReviewCollector {
         }
     }
 
-    private void writeMetadata(String beerDataFile, String beerName) {
+    private void writeMetadata(String... metadataType) {
         BufferedWriter bw = null;
         try {
             StringBuilder metadataString = new StringBuilder();
             metadataString.append("lastDataFile")
-                    .append("=")
-                    .append(beerDataFile)
-                    .append("\n")
-                    .append("beerName")
-                    .append("=")
-                    .append(beerName);
+                    .append("::");
+            for (String aSt : metadataType) {
+                metadataString.append(aSt)
+                .append("=")
+                .append(aSt)
+                .append("\t");
+            }
+                    
+            metadataString.append("\n");        
             
-            bw = new BufferedWriter(new FileWriter(METADATA_FILE));
+            bw = new BufferedWriter(new FileWriter(METADATA_FILE, true));
             bw.write(metadataString.toString());
             
         } catch (Exception ex) {

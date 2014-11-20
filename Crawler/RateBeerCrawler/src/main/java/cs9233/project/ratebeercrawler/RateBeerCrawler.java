@@ -3,10 +3,12 @@
 package cs9233.project.ratebeercrawler;
 
 import com.google.gson.Gson;
+import cs9233.project.ratebeercrawler.linkcollector.LinkCollector;
 import cs9233.project.ratebeercrawler.review.BeerReview;
 import cs9233.project.ratebeercrawler.review.BeerReviewCollector;
 import cs9233.project.ratebeercrawler.review.BeerReviewer;
-import java.util.Map;
+import static cs9233.project.ratebeercrawler.Constants.DIRNFILE.*;
+import java.io.File;
 
 /**
  *
@@ -14,9 +16,37 @@ import java.util.Map;
  */
 public class RateBeerCrawler {
     
-    public static void main(String[] args) {        
-        // new LinkCollector().dump();
+    public static void main(String[] args) {  
+        setupDataDirectories();
+        new LinkCollector().dump();
         new BeerReviewCollector().collect();
+    }
+    
+    private static void setupDataDirectories() {
+        File theDir = new File(DUMP_DIR);
+        if (!theDir.exists()) {
+            theDir.mkdirs();
+        }
+        
+        theDir = new File(RATEBEER);
+        if (!theDir.exists()) {
+            theDir.mkdirs();
+        }
+        
+        theDir = new File(RATEBEER + BREWERY_BY_CITY);
+        if (!theDir.exists()) {
+            theDir.mkdirs();
+        }
+        
+        theDir = new File(RATEBEER + BREW_BY_BREWERY);
+        if (!theDir.exists()) {
+            theDir.mkdirs();
+        }
+        
+        theDir = new File(RATEBEER + REVIEW);
+        if (!theDir.exists()) {
+            theDir.mkdirs();
+        }
     }
     
     private static void jsonTest() {
@@ -42,5 +72,7 @@ public class RateBeerCrawler {
         Object object = gson.fromJson(theJson, BeerReview.class);
         System.out.println(object);
     }
+
+    
 
 }
