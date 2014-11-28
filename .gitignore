@@ -1,6 +1,8 @@
-
-/Crawler/RateBeerCrawler/nbproject/private/
-/Crawler/RateBeerCrawler/target/
-/Crawler/RateBeerCrawler/DataDump/
-
-/CSvToDb/target/
+**/*.txt
+Crawler/RateBeerCrawler/nbproject/private/
+Crawler/RateBeerCrawler/target/
+Crawler/RateBeerCrawler/DataDump/
+Crawler/BeerAdvocateCrawler/target/**
+**/.idea/**
+Crawler/BeerAdvocateCrawler/.fuse*
+CSvToDb/target/

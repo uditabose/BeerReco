@@ -15,7 +15,7 @@ import java.util.List;
 public class BeerListBrowser {
 
     static String home = "http://www.beeradvocate.com/beer/reviews/?view=all&order=nameA&start=0";
-    static WebDriver beerListDriver = new FirefoxDriver();
+    static WebDriver beerListDriver;
     static BufferedWriter beerLinks;
     static BufferedWriter brewryLinks;
     static HashSet<String> beerSet = new HashSet<String>();

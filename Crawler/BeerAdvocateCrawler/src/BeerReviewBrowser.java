@@ -7,6 +7,8 @@ import java.io.*;
 import java.util.HashMap;
 import java.util.List;
 import org.openqa.selenium.NoSuchElementException;
+import org.openqa.selenium.firefox.FirefoxProfile;
+import org.openqa.selenium.firefox.internal.ProfilesIni;
 
 /**
  * Created by maverick on 11/5/14.
@@ -26,19 +28,22 @@ public class BeerReviewBrowser {
     // files used to keep the map data after the crawler has finished
     static String beerIdtoNameMap = "beerIdToName";
     static String brewryIdToNameMap = "brewryIdToName";
+    static String beerDataFile = "beerData.txt";
+    static String brewryData = "brewryData.txt";
+    static int reviewCounter = 0;
 
     // driver to browse through beer reviews
-    static WebDriver beerReviewDriver = new FirefoxDriver();
-
-    static String lastUrl = "";
+    static ProfilesIni profile = new ProfilesIni();
+    static FirefoxProfile ffprofile = profile.getProfile("default");
+    static WebDriver beerReviewDriver = new FirefoxDriver(ffprofile);
 
     static BufferedWriter dataFile;
     static BufferedReader urlFileReader;
     public static void runCrawlerPhase2() throws IOException {
         readBeerListFile();
     }
-    static HashMap<String, String> brewryIdMap = new HashMap<String, String>();
-    static HashMap<String, String> beerIdMap = new HashMap<String, String>();
+    static HashMap<String, String> brewryIdMap = new HashMap<>();
+    static HashMap<String, String> beerIdMap = new HashMap<>();
     static int beerid = 0;
     static int brewryId = 0;
     static int urlsProcessed = 0;
@@ -48,33 +53,42 @@ public class BeerReviewBrowser {
             initializeAndLoadState();
 
             String url = urlFileReader.readLine();
-            urlsProcessed++;
             while( url != null) {
                 url = url.substring(0,url.indexOf("?"));
                 processBeer(url);
                 mergeReviewsToDataFile();
+                urlsProcessed++;
                 preserveState();
                 url = urlFileReader.readLine();
-                urlsProcessed++;
             }
             dataFile.close();
             idMapOutput();
         } catch (IOException e) {
             e.printStackTrace();
         }
-
-
     }
 
     private static void idMapOutput() throws IOException {
-        BufferedWriter beerWriter = new BufferedWriter(new FileWriter(beerIdtoNameMap));
-        BufferedWriter brewryWriter = new BufferedWriter(new FileWriter(brewryIdToNameMap));
+        File beerIdtoName = new File(beerIdtoNameMap);
+        if(beerIdtoName.exists()) {
+            beerIdtoName.delete();
+        }
+        File brewryIdToName = new File(brewryIdToNameMap);
+        if(brewryIdToName.exists()) {
+            brewryIdToName.delete();
+        }
+
+        BufferedWriter beerWriter = new BufferedWriter(new FileWriter(beerIdtoName));
+        BufferedWriter brewryWriter = new BufferedWriter(new FileWriter(brewryIdToName));
+
         for(String key : beerIdMap.keySet()) {
             beerWriter.append(String.format("%1$s,%2$s\n", key, beerIdMap.get(key)));
         }
-        for(String key: brewryIdMap.keySet()) {
-            brewryWriter.append(String.format("%1$s,%2$s\n", key, brewryIdMap.get(key)));
+
+        for(String key2: brewryIdMap.keySet()) {
+            brewryWriter.append(String.format("%1$s,%2$s\n", key2, brewryIdMap.get(key2)));
         }
+
         beerWriter.close();
         brewryWriter.close();
     }
@@ -108,18 +122,20 @@ public class BeerReviewBrowser {
         beerName = temp.getText();
         brewryName = beerName.substring(beerName.indexOf("-")+1, beerName.length());
         beerName = beerName.substring(beerName.indexOf("-"));
-        String id , brewryid;
+        String id = "", brewryid = "";
+
         if(brewryIdMap.containsKey(brewryName))
+
             brewryid = brewryIdMap.get(brewryName);
         else {
-            brewryid = "ba"+ new Integer(brewryId++).toString();
+            brewryid = "bw"+ (new Integer(brewryId++).toString());
             brewryIdMap.put(brewryName, brewryid);
         }
         if(beerIdMap.containsKey(beerName)) {
             id = beerIdMap.get(beerName);
         }
         else {
-            id = "ba"+ new Integer(beerid++).toString();
+            id = "be"+ new Integer(beerid++).toString();
             beerIdMap.put(beerName, id);
         }
 
@@ -153,7 +169,9 @@ public class BeerReviewBrowser {
                     else if (ratingComponent.contains("overall"))
                         overall = ratingComponent.substring(ratingComponent.indexOf(":")+1);
                 }
+                bascore = bascore.substring(0,bascore.indexOf(' '));
                 bw.append(String.format("%9$s,%10$s,%1$s,%2$s,%3$s,%4$s,%5$s,%6$s,%7$s,%8$s\n",bascore, look, smell, taste, feel, overall,"ba-" +username, review, id, brewryid));
+                System.out.println(reviewCounter++);
             }
             if(next != null)
                 next.click();
@@ -190,8 +208,9 @@ public class BeerReviewBrowser {
             writer.append(beerid +"\n");
             writer.append(brewryId + "\n");
             writer.append(urlsProcessed+"\n");
-            writer.append(lastUrl+"\n");
+            writer.append(reviewCounter + "\n");
             writer.close();
+            idMapOutput();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -215,7 +234,7 @@ public class BeerReviewBrowser {
 
         try {
             urlFileReader = new BufferedReader(new FileReader(new File(inputUrlFile)));
-            dataFile = new BufferedWriter(new FileWriter(reviewData));
+            dataFile = new BufferedWriter(new FileWriter(reviewData, true));
         } catch (IOException e) {
             e.printStackTrace();
             System.exit(1);
@@ -242,10 +261,10 @@ public class BeerReviewBrowser {
                 beerid = Integer.parseInt(br.readLine());
                 brewryId = Integer.parseInt(br.readLine());
                 urlsProcessed = Integer.parseInt(br.readLine());
-                lastUrl = br.readLine();
+                reviewCounter = Integer.parseInt(br.readLine());
                 br.close();
 
-                for(int i = 0; i < urlsProcessed -1; i++) {
+                for(int i = 0; i < urlsProcessed; i++) {
                     urlFileReader.readLine();
                 }
 
