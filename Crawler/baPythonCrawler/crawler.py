@@ -1,5 +1,7 @@
 from lxml import html
 import urllib2
+from urllib2 import URLError
+import pdb
 
 # header to emulate a browser
 hdr = {'Accept-Language': 'en-US,en;q=0.8', 'Accept-Encoding': 'none', 'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8', 
@@ -12,10 +14,16 @@ baseurl = "http://www.beeradvocate.com"
 beerlistFileName = "beerlinks.txt"
 beerMetaDataFileName = "beerData.txt"
 brewryMetaDataFileName = "brewryData.txt"
+reviewDataFileName = "reviewData.txt"
+logFileName = "log.txt"
+beeridDataFileName = "beerIdData.txt"
+brewryidDataFileName = "brewryIdData.txt"
 
 # id constants
 beerId = 0
 brewryId = 0
+reviewNum = 0
+resetingReview = 0
 
 # global objects
 failedUrlList = []
@@ -27,7 +35,11 @@ brewryMetaDataDict = {}
 
 # files
 beerMetaData = open(beerMetaDataFileName,"w")
+beerIdData = open(beeridDataFileName,"w")
+brewryIdData = open(brewryidDataFileName, "w")
 brewryMetaData = open(brewryMetaDataFileName,"w")
+beerReviewData = open(reviewDataFileName,"w")
+logFile = open(logFileName,"w") 
 
 def readBeerList():
   f = open(beerlistFileName,'r')
@@ -37,11 +49,37 @@ def readBeerList():
 
 def crawlBeer():
   for url in beerLinkList:
-    htmlcode = openAndGetHtml(url)
-    if htmlcode is not None:
-      doc = html.fromstring(htmlcode)
-      findBeerData(doc)
-      crawlReviews(doc)
+    try:
+      htmlcode = openAndGetHtml(url)
+      if htmlcode is not None:
+        doc = html.fromstring(htmlcode)
+        beerName , brewryName = findBeerData(doc)
+        crawlReviews(doc, beerName, brewryName)
+    except:
+      pass
+  dictionaryDump()
+
+def dictionaryDump():
+  beerMetaData.truncate(0)
+  brewryMetaData.truncate(0)
+  beerMetaData.seek(0)
+  brewryMetaData.seek(0)
+  beerIdData.truncate(0)
+  beerIdData.seek(0)
+  brewryIdData.truncate(0)
+  brewryIdData.seek(0)
+  for key in beerMetaDataDict:
+    beerMetaData.write("%s,%s\n" %(key, beerMetaDataDict[key]))
+  beerMetaData.flush()
+  for key in brewryMetaDataDict:
+    brewryMetaData.write("%s,%s\n" % (key, brewryMetaDataDict[key]))
+  brewryMetaData.flush()
+  for key in beerIdDict:
+    beerIdData.write("%s,%s\n" % (key, beerIdDict[key]))
+  beerIdData.flush()
+  for key in brewryIdDict:
+    brewryIdData.write("%s,%s\n" % (key, brewryIdDict[key]))
+  brewryIdData.flush()
 
 def findBeerData(doc):
   global beerId
@@ -59,6 +97,7 @@ def findBeerData(doc):
   if brewryName not in brewryIdDict:
     brewryId += 1
     brewryIdDict[brewryName] = brewryId
+  return (beerName, brewryName)
 
 def getBeerMetaData(doc, beerName, brewryName):
   dic = {}
@@ -68,33 +107,81 @@ def getBeerMetaData(doc, beerName, brewryName):
   dic["ABV"] = vals[2][:vals[2].find("%")+1].strip()
   dic["brewry"] = brewryName
   beerMetaDataDict[beerName] = dic
-  print beerMetaDataDict
 
 def openAndGetHtml(url):
   try:
     req = urllib2.Request(url,headers = hdr)
     htmlcode = urllib2.urlopen(req)
   except URLError:
+    print url+"\n"
     failedUrlList.append(url)
     return None
   return htmlcode.read()
 
 def getNextPageLink(doc):
-  elem = doc.cssselect("#baContent>div:nth-last-child(1)>:nth-last-child(1)")
-  if elem[0].tag == "a":
-    print "getting next page"
+  elem = doc.cssselect("#baContent>div:nth-last-child(1)")
+  if len(elem[0]) > 0:
+    elem = elem[0].cssselect(":nth-last-child(1)")
+  if len(elem) > 0 and elem[0].tag == "a":
     link = baseurl + elem[0].get("href")
     return link
   else:
     return None
 
-def crawlReviews(doc):
-  link = getNextPageLink(doc)
-  if link is not None:
+def crawlReviews(doc, beerName, brewryName):
+  link = ""
+  while link is not None:
     reviews = doc.cssselect("#rating_fullview_container")
     for review in reviews:
-      collectReviewData(review)
+      try:
+        collectReviewData(review, beerName, brewryName)
+      except:
+        pass
+    try:
+      link = getNextPageLink(doc)
+      if link is not None:
+        doc = html.fromstring(openAndGetHtml(link))
+    except:
+      pass
 
+
+
+
+def collectReviewData(review, beerName, brewryName):
+  global reviewNum, resetingReview
+  spanList = review.cssselect("span")
+  score = spanList[0].text_content()
+  rating = spanList[3].text_content()
+  flag = not rating.find("|") == -1
+  if flag:
+    rating = rating.split("|")
+    ratings = [r[r.find(":")+1:].strip() for r in rating]
+  else:
+    ratings = ["","","","",""]
+  
+  username = spanList[len(spanList)-1].text_content()
+  username = username[:username.find(",")]
+  # extract the text review
+  textreview = review.text_content()
+  temp = textreview.find("%")
+  try:
+    if temp is not -1:
+      textreview = textreview[temp+1:]
+      temp = textreview.find("|")
+      if temp is not -1:
+        textreview = textreview[textreview.find(":")+5:]
+      textreview = textreview[:textreview.find(username)]
+  except:
+    pass
+  beerReviewData.write("%s,%s,%s,%s,%s,%s,%s,%s,%s,%s\n"%(str(beerIdDict[beerName]), str(brewryIdDict[brewryName]),
+    score,ratings[0], ratings[1], ratings[2], ratings[3], ratings[4], username, textreview) )
+  reviewNum += 1
+  resetingReview += 1
+  logFile.write("trc = %s, resetrc = %s, beerNum = %s , brewryNum = %s\n" % (str(reviewNum), str(resetingReview), str(beerId), str(brewryId)))
+  if logFile.tell() > 5000000:
+    logFile.truncate(0)
+    logFile.seek(0)
+    dictionaryDump()
 
 
 def main():
