@@ -6,3 +6,4 @@ Crawler/BeerAdvocateCrawler/target/**
 **/.idea/**
 Crawler/BeerAdvocateCrawler/.fuse*
 CSvToDb/target/
+/RateBeerDataPipeline/target/
