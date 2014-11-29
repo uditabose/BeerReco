@@ -2,6 +2,7 @@ from lxml import html
 import urllib2
 from urllib2 import URLError
 import pdb
+import os
 
 # header to emulate a browser
 hdr = {'Accept-Language': 'en-US,en;q=0.8', 'Accept-Encoding': 'none', 'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8', 
@@ -48,7 +49,9 @@ def readBeerList():
     beerLinkList.append(url)
 
 def crawlBeer():
+  global resetingReview
   for url in beerLinkList:
+    resetingReview = 0
     try:
       htmlcode = openAndGetHtml(url)
       if htmlcode is not None:
@@ -60,26 +63,29 @@ def crawlBeer():
   dictionaryDump()
 
 def dictionaryDump():
-  beerMetaData.truncate(0)
-  brewryMetaData.truncate(0)
-  beerMetaData.seek(0)
-  brewryMetaData.seek(0)
-  beerIdData.truncate(0)
-  beerIdData.seek(0)
-  brewryIdData.truncate(0)
-  brewryIdData.seek(0)
+  deleteMetaFiles()
+  beerMetaData = open(beerMetaDataFileName,"w")
+  beerIdData = open(beeridDataFileName,"w")
+  brewryIdData = open(brewryidDataFileName, "w")
+  brewryMetaData = open(brewryMetaDataFileName,"w")
   for key in beerMetaDataDict:
     beerMetaData.write("%s,%s\n" %(key, beerMetaDataDict[key]))
-  beerMetaData.flush()
+  beerMetaData.close()
   for key in brewryMetaDataDict:
     brewryMetaData.write("%s,%s\n" % (key, brewryMetaDataDict[key]))
-  brewryMetaData.flush()
+  brewryMetaData.close()
   for key in beerIdDict:
     beerIdData.write("%s,%s\n" % (key, beerIdDict[key]))
-  beerIdData.flush()
+  beerIdData.close()
   for key in brewryIdDict:
     brewryIdData.write("%s,%s\n" % (key, brewryIdDict[key]))
-  brewryIdData.flush()
+  brewryIdData.close()
+
+def deleteMetaFiles():
+  lst = [beerMetaDataFileName, beeridDataFileName, brewryidDataFileName, brewryidDataFileName]
+  for filename in lst:
+    if os.path.exists(filename):
+      os.remove(filename)
 
 def findBeerData(doc):
   global beerId
@@ -167,14 +173,18 @@ def collectReviewData(review, beerName, brewryName):
   try:
     if temp is not -1:
       textreview = textreview[temp+1:]
+      textreview = textreview[:textreview.find(username)]
       temp = textreview.find("|")
       if temp is not -1:
-        textreview = textreview[textreview.find(":")+5:]
-      textreview = textreview[:textreview.find(username)]
+        ind = textreview.rfind(":")
+        if ind is not -1:
+          textreview[ind+1:]
   except:
+    textreview = ""
     pass
-  beerReviewData.write("%s,%s,%s,%s,%s,%s,%s,%s,%s,%s\n"%(str(beerIdDict[beerName]), str(brewryIdDict[brewryName]),
-    score,ratings[0], ratings[1], ratings[2], ratings[3], ratings[4], username, textreview) )
+  output = ""
+  output = "%s,%s,%s,%s,%s,%s,%s,%s,%s,%s\n"%(str(beerIdDict[beerName]), str(brewryIdDict[brewryName]),score,ratings[0], ratings[1], ratings[2], ratings[3], ratings[4], username, textreview)
+  beerReviewData.write(output)
   reviewNum += 1
   resetingReview += 1
   logFile.write("trc = %s, resetrc = %s, beerNum = %s , brewryNum = %s\n" % (str(reviewNum), str(resetingReview), str(beerId), str(brewryId)))
