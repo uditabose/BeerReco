@@ -36,7 +36,7 @@ public class DataSorterRunner {
         dataSorterJobConf.setMapOutputKeyClass(Text.class);
         dataSorterJobConf.setMapOutputValueClass(Text.class);
         dataSorterJobConf.setOutputKeyClass(Text.class);
-        dataSorterJobConf.setOutputValueClass(ArrayWritable.class);
+        dataSorterJobConf.setOutputValueClass(Text.class);
         dataSorterJobConf.setInputFormat(TextInputFormat.class);
         dataSorterJobConf.setOutputFormat(TextOutputFormat.class);
 

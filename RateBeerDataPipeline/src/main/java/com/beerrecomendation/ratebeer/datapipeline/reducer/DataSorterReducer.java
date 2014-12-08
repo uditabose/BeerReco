@@ -18,17 +18,18 @@ import org.apache.hadoop.mapred.Reporter;
  * @author Udita
  */
 public class DataSorterReducer extends MapReduceBase 
-implements Reducer<Text, Text, Text, ArrayWritable> {
+implements Reducer<Text, Text, Text, Text> {
 
     @Override
     public void reduce(Text reduceKey, Iterator<Text> reducerValueIterator, 
-            OutputCollector<Text, ArrayWritable> outputCollector, Reporter reporter) throws IOException {
-        
-        List<String> reduceResultCollector = new ArrayList<>();
+            OutputCollector<Text, Text> outputCollector, Reporter reporter) throws IOException {
+
+        StringBuilder outputBuilder = new StringBuilder();
         while(reducerValueIterator.hasNext()) {
-            reduceResultCollector.add(reducerValueIterator.next().toString());
+            outputBuilder.append(reducerValueIterator.next().toString())
+                    .append(":");
         }
         
-        outputCollector.collect(reduceKey, new ArrayWritable(reduceResultCollector.toArray(new String[0])));
+        outputCollector.collect(reduceKey, new Text(outputBuilder.toString()));
     }
 }
