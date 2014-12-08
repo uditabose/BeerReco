@@ -26,11 +26,11 @@ public class ItemCollatorRunner {
         
         /**
          * DEBUG --
-         */
+        
         args = new String[]{
             "/Users/michaelgerstenfeld/Google Drive/MSCS/FALL14/CS9233/Project/Resource/DataSorter/part-00000", 
             "/Users/michaelgerstenfeld/Google Drive/MSCS/FALL14/CS9233/Project/Resource/ItemCollator"};
-       
+        */
         
         if (args.length < 2) {
             System.out.println("Invalid arguements");
