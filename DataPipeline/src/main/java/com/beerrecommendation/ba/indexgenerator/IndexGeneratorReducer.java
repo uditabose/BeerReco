@@ -18,7 +18,9 @@ public class IndexGeneratorReducer extends MapReduceBase implements Reducer<Text
         double sum = 0;
         int count = 0;
         while(values.hasNext()) {
-            sum += values.next().get();
+            double val = values.next().get();
+            System.out.println("key is "+key+"value is "+val);
+            sum += val;
             count ++;
         }
         sum = sum / count;
