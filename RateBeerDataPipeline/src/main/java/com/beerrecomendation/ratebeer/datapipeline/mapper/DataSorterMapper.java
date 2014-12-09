@@ -4,6 +4,7 @@ package com.beerrecomendation.ratebeer.datapipeline.mapper;
 
 import java.io.IOException;
 import org.apache.hadoop.io.IntWritable;
+import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapred.MapReduceBase;
 import org.apache.hadoop.mapred.Mapper;
@@ -14,10 +15,10 @@ import org.apache.hadoop.mapred.Reporter;
  *
  * @author Udita
  */
-public class DataSorterMapper extends MapReduceBase implements Mapper<IntWritable, Text, Text, Text> {
+public class DataSorterMapper extends MapReduceBase implements Mapper<LongWritable, Text, Text, Text> {
 
     @Override
-    public void map(IntWritable mapperKey, Text mapperValue, OutputCollector<Text, 
+    public void map(LongWritable mapperKey, Text mapperValue, OutputCollector<Text, 
             Text> outputCollector, Reporter reporter) throws IOException {
         
         // Assumption :
