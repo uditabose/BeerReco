@@ -3,6 +3,8 @@ import urllib2
 from urllib2 import URLError
 import pdb
 import os
+import json
+import shutil
 
 # header to emulate a browser
 hdr = {'Accept-Language': 'en-US,en;q=0.8', 'Accept-Encoding': 'none', 'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8', 
@@ -25,6 +27,7 @@ beerId = 0
 brewryId = 0
 reviewNum = 0
 resetingReview = 0
+dictionaryVersion = 0
 
 # global objects
 failedUrlList = []
@@ -63,29 +66,28 @@ def crawlBeer():
   dictionaryDump()
 
 def dictionaryDump():
-  deleteMetaFiles()
+  print "dumping dictionary\n"
+  moveMetaFiles()
   beerMetaData = open(beerMetaDataFileName,"w")
   beerIdData = open(beeridDataFileName,"w")
   brewryIdData = open(brewryidDataFileName, "w")
   brewryMetaData = open(brewryMetaDataFileName,"w")
-  for key in beerMetaDataDict:
-    beerMetaData.write("%s,%s\n" %(key, beerMetaDataDict[key]))
+  beerMetaData.write(json.dumps(beerMetaDataDict))
   beerMetaData.close()
-  for key in brewryMetaDataDict:
-    brewryMetaData.write("%s,%s\n" % (key, brewryMetaDataDict[key]))
+  brewryMetaData.write(json.dumps(brewryMetaDataDict))
   brewryMetaData.close()
-  for key in beerIdDict:
-    beerIdData.write("%s,%s\n" % (key, beerIdDict[key]))
+  beerIdData.write(json.dumps(beerIdDict))
   beerIdData.close()
-  for key in brewryIdDict:
-    brewryIdData.write("%s,%s\n" % (key, brewryIdDict[key]))
+  brewryIdData.write(json.dumps(brewryIdDict))
   brewryIdData.close()
 
-def deleteMetaFiles():
+def moveMetaFiles():
+  global dictionaryVersion
   lst = [beerMetaDataFileName, beeridDataFileName, brewryidDataFileName, brewryidDataFileName]
+  dictionaryVersion += 1
   for filename in lst:
     if os.path.exists(filename):
-      os.remove(filename)
+      shutil.move(filename, "./../"+filename+str(dictionaryVersion))
 
 def findBeerData(doc):
   global beerId
@@ -192,7 +194,6 @@ def collectReviewData(review, beerName, brewryName):
     logFile.truncate(0)
     logFile.seek(0)
     dictionaryDump()
-
 
 def main():
   readBeerList()

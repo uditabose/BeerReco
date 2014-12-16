@@ -16,22 +16,29 @@ public class DataSorterMapper extends MapReduceBase implements Mapper<LongWritab
 
     public void map(LongWritable key, Text value, OutputCollector<Text, Text> output, Reporter reporter) throws IOException {
         String str = value.toString();
-        String [] rawValues = str.split(","); // split csv into components
+        try{
 
-        if (rawValues.length < 8){
-            System.out.println("less value detected "+str);
-            return;
-        }
+            String [] rawValues = str.split(","); // split csv into components
 
-        StringBuffer values = new StringBuffer();   // keep the useful part in values
-        for(int i = 0; i < 8; i++) { // first 7 indexes have useful info
-            values.append(rawValues[i]);
-            if(i != 7) {
-                values.append(",");
+            if (rawValues.length < 9){
+                System.out.println("less value detected "+str);
+                return;
             }
 
+            StringBuffer values = new StringBuffer();   // keep the useful part in values
+            for(int i = 0; i < 8; i++) { // first 7 indexes have useful info
+                values.append(rawValues[i]);
+                if(i != 7) {
+                    values.append(",");
+                }
+
+            }
+            String username = rawValues[8];
+            output.collect(new Text(username), new Text(values.toString()));
+        } catch(Exception e) {
+            e.printStackTrace();
+            throw new IOException("problem string is " + str);
         }
-        String username = rawValues[8];
-        output.collect(new Text(username), new Text(values.toString()));
+
     }
 }

@@ -21,22 +21,18 @@ public class IndexGeneratorMapper extends MapReduceBase implements Mapper<LongWr
         int sep = val.indexOf("\t");
         //String username = val.substring(0,sep);
         String reviewstring = val.substring(sep+1, val.length()-1);
-        String[] reviews = reviewstring.split("^");
-        // for debugging only
-//        if(reviews.length > 1) {
-//            System.out.println("candidate review");
-//            System.out.println(val);
-//        }
+        String[] reviews = reviewstring.split("\\^");
+
         for(int i = 0; i < reviews.length-1; i++) {
             for(int j = i+1; j < reviews.length; j++) {
                 distance = calculateEuclidanDistance(reviews[i],reviews[j]);
                 int id1 = findBeerId(reviews[i]);
                 int id2 = findBeerId(reviews[j]);
                 if (id1 < id2) {
-                    output.collect(new Text(id1+" "+id2), new DoubleWritable(distance));
+                    output.collect(new Text(id1+"\t"+id2), new DoubleWritable(distance));
                 }
                 else {
-                    output.collect(new Text(id2+" "+id1), new DoubleWritable(distance));
+                    output.collect(new Text(id2+"\t"+id1), new DoubleWritable(distance));
                 }
             }
         }
