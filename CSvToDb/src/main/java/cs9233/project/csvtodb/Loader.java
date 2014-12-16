@@ -1,5 +1,6 @@
 package cs9233.project.csvtodb;
 
+import cs9233.project.util.ConnectionUtil;
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
@@ -57,7 +58,7 @@ public class Loader {
         }
 
         ConnectionUtil connectionUtil = ConnectionUtil.getInstance();
-        Connection connection = connectionUtil.getConnection();
+        Connection connection = connectionUtil.getTempRdsConnection();
         int numberOfReviews = getGetNumberOfRows(connection);
 
         connection.setAutoCommit(false);
