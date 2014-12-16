@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+	<html>
+		<head>
+		
+		</head>
+	
+		<body>
+			<h1>Tell us 3 beers you like!</h1>
+			<form method ='POST' action=''> {% csrf_token %}
+				{{form.as_p}}
+				
+
+				<input type='submit'>
+
+			        
+			</form>
+			<form method = "GET">
+                                <input type='submit' value=' Get Beer Recomendation'>                
+			</form>
+	       {% if messages %}
+		
+	    	{% for message in messages %}
+	    	<li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+	   	 {% endfor %}
+		
+		{% endif %}
+		</body>
+
+	</html>
