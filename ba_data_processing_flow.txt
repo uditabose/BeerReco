@@ -1,0 +1,7 @@
+1. Raw full data collected by Crawler
+2. Run clean.py from ba data transformation scripts on reviewData.txt to get processedReviews.txt (this is the input to the first MR job DataSorterJob.java)
+3. Run the MR job. The output of this job is input to the next MR job (IndexGeneratorJob.java)
+4. Run idname.py on beerIdData.txt to obtain a file containing mapping from beer name to id (fit for db upload)
+5. Run idname.py on brewryIdData.txt to obtain a file containing mapping from brewry name to id(fit for db upload)
+6. run beermetadata.py with beerIdData.txt brweryIdData.txt and beerData.txt to obtain a file containing beermetadata.txt which is fit for db upload
+7. Sort the output of MR job in step 3 with the HIVE code written by Udita. That file is fit for upload to db.

@@ -1,4 +1,7 @@
-**/*.txt
+**/Crawler/**/*.txt
+**/target/**
+**/.fuse_hidden*
+**/*.iml
 Crawler/RateBeerCrawler/nbproject/private/
 Crawler/RateBeerCrawler/target/
 Crawler/RateBeerCrawler/DataDump/
