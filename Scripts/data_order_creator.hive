@@ -1,0 +1,53 @@
+# Craeting a database
+CREATE DATABASE beerreco;
+
+# Create table for beer advocate, data is tab separated 
+CREATE TABLE ba_data (
+beer1 STRING,
+beer2 STRING,
+dist FLOAT)
+ROW FORMAT DELIMITED
+FIELDS TERMINATED BY '\t';
+
+# Load data of index generator MapReduce to the hive table
+LOAD DATA LOCAL INPATH '/Users/michaelgerstenfeld/Google Drive/MSCS/FALL14/CS9233/Project/Resource/pipeline data/3. generatedIndex/part-00000'
+INTO TABLE ba_data;
+
+# Order dataset for relational database
+SELECT  * FROM  ba_data ORDER BY beer1, dist; 
+
+
+# Create table for rate beer, data is space separated
+CREATE TABLE rb_data (
+beer1 STRING,
+beer2 STRING,
+dist FLOAT)
+ROW FORMAT DELIMITED
+FIELDS TERMINATED BY ' ';
+
+# Load data of index generator MapReduce to the hive table
+LOAD DATA LOCAL INPATH '/Users/michaelgerstenfeld/Google Drive/MSCS/FALL14/CS9233/Project/Resource/hive_dump/part1'
+INTO TABLE ba_data;
+LOAD DATA LOCAL INPATH '/Users/michaelgerstenfeld/Google Drive/MSCS/FALL14/CS9233/Project/Resource/hive_dump/part2'
+INTO TABLE ba_data;
+LOAD DATA LOCAL INPATH '/Users/michaelgerstenfeld/Google Drive/MSCS/FALL14/CS9233/Project/Resource/hive_dump/part3'
+INTO TABLE ba_data;
+LOAD DATA LOCAL INPATH '/Users/michaelgerstenfeld/Google Drive/MSCS/FALL14/CS9233/Project/Resource/hive_dump/part4'
+INTO TABLE ba_data;
+LOAD DATA LOCAL INPATH '/Users/michaelgerstenfeld/Google Drive/MSCS/FALL14/CS9233/Project/Resource/hive_dump/part5'
+INTO TABLE ba_data;
+LOAD DATA LOCAL INPATH '/Users/michaelgerstenfeld/Google Drive/MSCS/FALL14/CS9233/Project/Resource/hive_dump/part6'
+INTO TABLE ba_data;
+LOAD DATA LOCAL INPATH '/Users/michaelgerstenfeld/Google Drive/MSCS/FALL14/CS9233/Project/Resource/hive_dump/part7'
+INTO TABLE ba_data;
+LOAD DATA LOCAL INPATH '/Users/michaelgerstenfeld/Google Drive/MSCS/FALL14/CS9233/Project/Resource/hive_dump/part8'
+INTO TABLE ba_data;
+LOAD DATA LOCAL INPATH '/Users/michaelgerstenfeld/Google Drive/MSCS/FALL14/CS9233/Project/Resource/hive_dump/part9'
+INTO TABLE ba_data;
+LOAD DATA LOCAL INPATH '/Users/michaelgerstenfeld/Google Drive/MSCS/FALL14/CS9233/Project/Resource/hive_dump/part10'
+INTO TABLE ba_data;
+
+
+# Order dataset for relational database
+SELECT  * FROM  rb_data ORDER BY beer1, dist;
+

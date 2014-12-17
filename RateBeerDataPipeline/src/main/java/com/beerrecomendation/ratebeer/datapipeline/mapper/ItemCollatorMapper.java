@@ -48,12 +48,17 @@ public class ItemCollatorMapper extends MapReduceBase
         char blank = (char) 160;
         for (int i = 1; i < partReview.length; i++) {
             String aPart = partReview[i].replaceAll(blank + "", "").trim();
-            if (aPart.contains(".")) {
-                ratings.add(Float.parseFloat(aPart));
-            } else if (partReview[i].contains("/")) {
-                String[] decimalParts = aPart.split("/");
-                ratings.add(Float.parseFloat(decimalParts[0])/Float.parseFloat(decimalParts[1]));
-            } 
+            try {
+                if (aPart.contains(".")) {
+                    ratings.add(Float.parseFloat(aPart));
+                } else if (partReview[i].contains("/")) {
+                    String[] decimalParts = aPart.split("/");
+                    ratings.add(Float.parseFloat(decimalParts[0])/Float.parseFloat(decimalParts[1]));
+                } 
+            } catch (Exception ex) {
+                
+            }
+            
         }
         return ratings;
     }

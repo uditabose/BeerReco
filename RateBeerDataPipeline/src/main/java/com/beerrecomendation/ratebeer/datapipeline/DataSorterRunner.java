@@ -17,12 +17,21 @@ import org.apache.hadoop.mapred.TextInputFormat;
 import org.apache.hadoop.mapred.TextOutputFormat;
 
 /**
- *
+ * com.beerrecomendation.ratebeer.datapipeline.DataSorterRunner
  * @author Udita
  */
 public class DataSorterRunner {
     public static void main(String[] args) throws IOException {
         
+        
+        /**
+         * DEBUG --
+         */
+        
+        args = new String[]{
+            "/Users/michaelgerstenfeld/Google Drive/MSCS/FALL14/CS9233/Project/Resource/By_Review", 
+            "/Users/michaelgerstenfeld/Google Drive/MSCS/FALL14/CS9233/Project/Resource/DataSorter"
+        };
         if (args.length < 2) {
             System.out.println("Invalid arguements");
             return;
