@@ -1,0 +1,79 @@
+body {
+    background-image: url("../images/background.png");
+    background-size: 100%;
+}
+.recommendation {
+	padding: 10px;
+	border: 3px solid #C44741;
+	border-radius: 25px;
+	font-size: 22px;
+	margin: 20px 20px;
+	background-color: #FFFAFA;
+}
+
+.recommendation > .bold{
+	padding-top: 5px;
+	font-weight: bold;
+	text-align: center;
+}
+
+#txtinp {
+	width: 700px;
+}
+
+.form {
+	margin-left: 20%;
+	display: inline-block;
+}
+
+.item {
+font-weight: bold;
+font-size: medium;
+width: 400px;
+margin: auto;
+text-align: left;
+margin-top: 10px;
+background: #F2F2F2;
+padding: 10px;
+box-shadow: 0px 0px 5px #CCC;
+border-radius: 20px;
+border:2px solid #C44741;
+}
+
+.active {
+background-color: #C44741;
+color: #f2f2f2;
+}
+
+input.cheers{
+	width: 150px;
+	margin-left: 20px;
+}
+
+input {
+padding: 10px;
+font-size: 22px;
+margin: 20px 0 0 0;
+border-radius: 20px;
+border: 2px solid #C44741;
+outline: none;
+}
+
+.selection{
+	display:inline-block;
+}
+
+.selection > p {
+	font-weight: bold;
+	font-size: 22px;
+	margin: 
+}
+.selected{
+	padding: 10px;
+	font-size: 18px;
+	margin: 20px 0 0 0;
+	border-radius: 15px;
+	border: 1px solid #C44741;
+	outline: none;
+	background: #FFFF99
+}
