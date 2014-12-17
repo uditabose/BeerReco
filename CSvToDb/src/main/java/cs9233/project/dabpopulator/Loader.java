@@ -21,12 +21,12 @@ public class Loader {
     
     public static void main(String[] args) {
         try {
-            String dataPath = "/Users/michaelgerstenfeld/Google Drive/MSCS/FALL14/CS9233/Project/Resource/By_Beer";
+            String dataPath = "/Users/michaelgerstenfeld/Google Drive/MSCS/FALL14/CS9233/Project/Resource/By_Beer_ReWrite";
             BufferedReader dataReader = new BufferedReader(new FileReader(dataPath));
             Connection connection = ConnectionUtil.getInstance().getFinalRdsConnection();
             connection.setAutoCommit(false);
-            String insertQuery = "INSERT INTO beerRating.Beer (BEER_ID, BEER_NAME "
-                    + ") VALUES (?, ?)";
+            String insertQuery = "INSERT INTO beerRating.Beer (beer_seq, BEER_ID, BEER_NAME "
+                    + ") VALUES (?, ?, ?)";
             
             int beerSeq = 0;
             PreparedStatement preparedStatement = connection.prepareStatement(insertQuery);
@@ -37,13 +37,12 @@ public class Loader {
                     while((dataLine = dataReader.readLine()) != null) {
                         
                         String[] splittedData = dataLine.split(",");
-                        preparedStatement.setInt(1, ++beerSeq);
+                        preparedStatement.setLong(1, Long.parseLong(splittedData[0]));
                         preparedStatement.setString(2, splittedData[1].trim());
+                        preparedStatement.setString(3, splittedData[2].trim());
                         preparedStatement.addBatch();
 
                         if (beerSeq % 100 == 0) {
-                            System.out.println("Updating - " + beerSeq + " - " + dataLine);
-                            //System.out.println(splittedData[0] + " - " + splittedData[1]);
                             preparedStatement.executeBatch();
                             connection.commit();
                         }
