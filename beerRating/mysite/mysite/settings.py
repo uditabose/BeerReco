@@ -59,7 +59,7 @@ WSGI_APPLICATION = 'mysite.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'mydatabase',
+        'NAME': 'beerRating',
         'USER': 'mydatabaseuser',
         'PASSWORD': 'mypassword',
         'HOST': 'beerratingrds.c6crwpihucv4.us-east-1.rds.amazonaws.com',
